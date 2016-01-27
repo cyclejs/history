@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/cyclejs/cycle-history#readme",
   "dependencies": {
-    "history": "^1.x.x"
+    "history": "^1.17.0"
   },
   "peerDependencies": {
     "rx": "4.x.x"
