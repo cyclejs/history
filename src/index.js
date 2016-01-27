@@ -52,13 +52,13 @@ function createHistorySubject(history) {
   return subject
 }
 
-function makeHistoryDriver(config) {
+function makeHistoryDriver(config = {}) {
   const {hash = false, queries = true, ...options} = config || {}
 
-  const history = config.history ?
+  const history = config && config.history ?
     config.history :
     makeHistory(hash, queries, options)
-  
+
   const historySubject = createHistorySubject(history)
 
   return function historyDriver(url$) {
@@ -96,5 +96,5 @@ function makeServerHistoryDriver(startingLocation) {
 export {
   makeHistoryDriver,
   makeServerHistoryDriver,
-  filterLinks
+  filterLinks,
 }

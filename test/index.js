@@ -1,5 +1,5 @@
 /* global require */
-const test = require(`tape`)
+const assert = require(`assert`)
 const Rx = require(`rx`)
 const {
   makeHistoryDriver,
@@ -27,54 +27,83 @@ const mixedStateUrl$ = Rx.Observable.from([
   `/about`,
 ])
 
-test(`makeHistoryDriver`, t => {
-  t.equals(typeof makeHistoryDriver({}), `function`, `should return a function`)
-  t.ok(makeHistoryDriver(), `should be accept no parameter`)
-  t.ok(makeHistoryDriver({
-    hash: true,
-    queries: true,
-    basename: `home`,
-  }), `should accept an options object`)
-  t.ok(makeHistoryDriver(`hello`), `should ignore a string`)
-  t.ok(makeHistoryDriver([`hello`]), `should ignore an array`)
-  t.ok(makeHistoryDriver(true), `should ignore a boolean`)
-  t.end()
-})
+describe(`makeHistoryDriver`, () => {
+  it(`should return a function`, () => {
+    assert.strictEqual(typeof makeHistoryDriver({}), `function`)
+  })
 
-test(`historyDriver`, t => {
-  const historyDriver = makeHistoryDriver()
-
-  t.ok(historyDriver(statelessUrl$), `should accept an observable`)
-  t.ok(historyDriver(statelessUrl$),
-    `should accept an observable of stateless paths`)
-  t.ok(historyDriver(statefulUrl$), `should accept observable of state objects`)
-  t.ok(historyDriver(mixedStateUrl$),
-    `should accept observable with a mix of stateless and stateful`)
-  t.ok(historyDriver(mixedStateUrl$) instanceof Rx.BehaviorSubject,
-    `should return an Rx.BehaviorSubject`)
-  t.end()
-})
-
-test(`historySubject`, t => {
-  const historySubject = makeHistoryDriver({
-    hash: false,
-    queries: true,
-    basename: `/home`,
-  })(statefulUrl$)
-
-  historySubject
-    .subscribe(location => {
-      t.equals(typeof location, `object`, `should return a location object`)
-      t.equals(location.pathname, `/about`, `pathname should be /about`)
-      t.equals(location.search, `?x=99`, `search should be ?x=99`)
-      t.equals(typeof location.query, `object`, `queries should be an object`)
-      t.equals(location.query.x, `99`, `queries.x should be 99`)
-      t.equals(typeof location.state, `object`, `state should be an object`)
-      t.equals(location.state.y, 1000, `state.y should be 1000`)
-      t.equals(location.action, `PUSH`, `actions should be 'PUSH'`)
-      t.equals(typeof location.key, `string`, `key should be a string`)
+  it(`should accept no parameter`, () => {
+    assert.doesNotThrow(() => {
+      makeHistoryDriver({hash: true})
     })
-  t.end()
+  })
+
+  it(`should accept an options object`, () => {
+    assert.doesNotThrow(() => {
+      makeHistoryDriver({
+        hash: true,
+        queries: true,
+        basename: `home`,
+      })
+    })
+  })
+
+  it('should ignore primitives', () => {
+    assert.doesNotThrow(() => {
+      makeHistoryDriver(`hello`)
+      makeHistoryDriver([])
+      makeHistoryDriver(true)
+    })
+  })
+
+  describe(`historyDriver`, () => {
+    it('should accept an observable', () => {
+      assert.doesNotThrow(() => {
+        makeHistoryDriver({hash: true})(statelessUrl$)
+      })
+    })
+
+    it('should acceept all types of observables', () => {
+      assert.doesNotThrow(() => {
+        makeHistoryDriver({hash: true})(statelessUrl$)
+        makeHistoryDriver({hash: true})(statefulUrl$)
+        makeHistoryDriver({hash: true})(mixedStateUrl$)
+      })
+    })
+
+    it('should return an Rx.BehaviorSubject', () => {
+      assert.strictEqual(
+        makeHistoryDriver({hash: true})(mixedStateUrl$) instanceof Rx.BehaviorSubject,
+        true
+      )
+    })
+  })
+
+  describe(`historySubject`, () => {
+    it('should return a location object', done => {
+      const historySubject = makeHistoryDriver({
+        hash: true,
+        queries: true,
+        basename: `/home`,
+      })(statefulUrl$)
+
+      historySubject
+        .skip(1)
+        .take(1)
+        .subscribe(location => {
+          assert.strictEqual(typeof location, `object`)
+          assert.strictEqual(location.pathname, `/about`)
+          assert.strictEqual(location.search, `?x=99`)
+          assert.strictEqual(typeof location.query, `object`)
+          assert.strictEqual(location.query.x, `99`)
+          assert.strictEqual(typeof location.state, `object`)
+          assert.strictEqual(location.state.y, 1000)
+          assert.strictEqual(location.action, `POP`)
+          assert.strictEqual(typeof location.key, `string`)
+          done()
+        })
+    })
+  })
 })
 
 const serverConfig = {
@@ -86,29 +115,33 @@ const serverConfig = {
   key: ``,
 }
 
-test(`makeServerHistoryDriver`, t => {
-  t.equals(typeof makeServerHistoryDriver(serverConfig),
-    `function`,
-    `should return a function`)
-  t.ok(makeServerHistoryDriver(serverConfig), `should accept a location object`)
-  t.ok(makeServerHistoryDriver(),`should return defaults`)
-  t.end()
-})
-
-test(`serverHistorySubject`, t => {
-  const serverHistorySubject = makeServerHistoryDriver(serverConfig)()
-  t.ok(serverHistorySubject instanceof Rx.BehaviorSubject,
-    `should be an instance of Rx.BehaviorSubject`)
-  serverHistorySubject.subscribe(location => {
-    t.equals(typeof location, `object`, `should return a location object`)
-    t.equals(location.pathname, `/about`, `pathname should be /about`)
-    t.equals(location.search, `?x=99`, `search should be ?x=99`)
-    t.equals(typeof location.query, `object`, `queries should be an object`)
-    t.equals(location.query.x, `99`, `queries.x should be 99`)
-    t.equals(typeof location.state, `object`, `state should be an object`)
-    t.equals(location.state.y, 1000, `state.y should be 1000`)
-    t.equals(location.action, `PUSH`, `actions should be 'PUSH'`)
-    t.equals(typeof location.key, `string`, `key should be a string`)
+describe(`makeServerHistoryDriver`, () => {
+  it('should return a function', () => {
+    assert.strictEqual(typeof makeServerHistoryDriver(serverConfig), `function`)
   })
-  t.end()
+
+  it('should return defaults', () => {
+    assert.doesNotThrow(() => {
+      makeServerHistoryDriver()
+    })
+  })
+
+  describe('serverHistorySubject', done => {
+    it ('should return a location object', () => {
+      const historySubject = makeServerHistoryDriver(serverConfig)()
+
+      historySubject
+        .subscribe(location => {
+          assert.strictEqual(typeof location, `object`)
+          assert.strictEqual(location.pathname, `/about`)
+          assert.strictEqual(location.search, `?x=99`)
+          assert.strictEqual(typeof location.query, `object`)
+          assert.strictEqual(location.query.x, `99`)
+          assert.strictEqual(typeof location.state, `object`)
+          assert.strictEqual(location.state.y, 1000)
+          assert.strictEqual(location.action, `PUSH`)
+          assert.strictEqual(typeof location.key, `string`)
+        })
+    })
+  })
 })
