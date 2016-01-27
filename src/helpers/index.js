@@ -69,5 +69,5 @@ const filterLinks = (e) => {
 
 export {
   filterLinks,
-  supportsHistory
+  supportsHistory,
 }
