@@ -52,7 +52,7 @@
   "scripts": {
     "lint": "tslint -c tslint.json src/*.ts src/**/*.ts",
     "test-node": "mocha -r babel-register test/node/*.js",
-    "build-browser-tests": "browserify -t babelify test/browser/index.js -o test/bundle.js",
+    "build-browser-tests": "browserify -t babelify test/browser/index.js -o test/browser/bundle.js",
     "test-browser": "testem",
     "test": "npm run lint && npm run lib && npm run test-node && npm run test-browser",
     "test-ci": "npm run lint && npm run test-node && testem ci",

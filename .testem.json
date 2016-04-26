@@ -5,9 +5,9 @@
   ],
   "before_tests": "npm run build-browser-tests",
   "serve_files": [
-    "test/bundle.js"
+    "test/browser/bundle.js"
   ],
-  "after_tests": "rm test/bundle.js",
+  "after_tests": "rm test/browser/bundle.js",
   "script": "npm run test-ci",
   "launch_in_ci": [
     "firefox"
