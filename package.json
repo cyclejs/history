@@ -58,5 +58,8 @@
     "test": "npm run lint && npm run test-node && npm run test-browser",
     "lib": "babel --presets es2015 --plugins syntax-object-rest-spread,transform-object-rest-spread src/ -d lib/",
     "prepublish": "npm run lib"
+  },
+  "dependencies": {
+    "@cycle/rx-adapter": "^1.0.3"
   }
 }
