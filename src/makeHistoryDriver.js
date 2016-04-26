@@ -1,5 +1,6 @@
 import {ReplaySubject} from 'rx'
 import {captureClicks} from './captureClicks'
+import rxAdapter from '@cycle/rx-adapter'
 
 function makeUpdateHistory(history) {
   return function updateHistory(location) {
@@ -73,7 +74,7 @@ function makeHistoryDriver(history, options) {
    * location you have navigated to.
    */
   /*eslint-enable*/
-  return function historyDriver(sink$) {
+  function historyDriver(sink$) {
     let history$ = new ReplaySubject(1)
     let unlisten = history.listen(location => history$.onNext(location))
 
@@ -96,6 +97,8 @@ function makeHistoryDriver(history, options) {
     history$.createHref = history.createHref
     return history$
   }
+  history.streamAdapter = rxAdapter
+  return history
 }
 
 export {makeHistoryDriver}
