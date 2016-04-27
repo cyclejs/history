@@ -5,7 +5,6 @@
     "es6-promise": "registry:npm/es6-promise#3.0.0+20160211003958"
   },
   "devDependencies": {
-    "@cycle/base": "npm:@cycle/base",
     "xstream": "npm:xstream",
     "@cycle/xstream-adapter": "npm:@cycle/xstream-adapter",
     "@cycle/xstream-run": "npm:@cycle/xstream-run"
