@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TylorS/xs-dom.git"
+    "url": "git+https://github.com/cyclejs/history.git"
   },
   "author": "Tylor Steinberger",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/TylorS/xs-dom/issues"
+    "url": "https://github.com/cyclejs/history/issues"
   },
-  "homepage": "https://github.com/TylorS/xs-dom#readme",
+  "homepage": "https://github.com/cyclejs/history#readme",
   "dependencies": {
     "history": "^2.1.0"
   },
