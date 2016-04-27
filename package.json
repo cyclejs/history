@@ -55,7 +55,7 @@
     "build-browser-tests": "browserify -t babelify test/browser/index.js -o test/browser/bundle.js",
     "test-browser": "testem",
     "test": "npm run lint && npm run lib && npm run test-node && npm run test-browser",
-    "test-ci": "npm run lint && npm run test-node && testem ci",
+    "test-ci": "npm run lint && npm run lib && npm run test-node && testem ci",
     "predist": "rm -rf dist/ && mkdirp dist/",
     "lib": "tsc --target es2015 --module es2015",
     "start": "npm install && npm prune",
