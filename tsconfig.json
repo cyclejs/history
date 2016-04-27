@@ -6,8 +6,8 @@
     "declaration": true,
     "noImplicitAny": true,
     "suppressImplicitAnyIndexErrors": true,
-    "module": "es2015",
-    "target": "ES6",
+    "module": "commonjs",
+    "target": "ES5",
     "outDir": "lib/"
   },
   "formatCodeOptions": {
@@ -16,10 +16,8 @@
   },
    "files": [
      "typings/main.d.ts",
+     "node_modules/@cycle/history/lib/index.d.ts",
      "src/custom-typings/main.d.ts",
      "src/index.ts"
-   ],
-   "exclude": [
-     "node_modules"
    ]
 }
