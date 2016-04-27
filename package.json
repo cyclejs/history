@@ -1,7 +1,7 @@
 {
-  "name": "@cycle/history",
-  "version": "3.0.0",
-  "description": "The standard history driver for Cycle.js",
+  "name": "cyclic-router",
+  "version": "2.0.0",
+  "description": "A router driver for Cycle.js Diversity",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "directories": {
@@ -9,16 +9,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cyclejs/history.git"
+    "url": "git+https://github.com/TylorS/cyclic-router.git"
   },
   "author": "Tylor Steinberger",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/cyclejs/history/issues"
+    "url": "https://github.com/TylorS/cyclic-router/issues"
   },
-  "homepage": "https://github.com/cyclejs/history#readme",
+  "homepage": "https://github.com/TylorS/cyclic-router#readme",
   "dependencies": {
-    "history": "^2.1.0"
+    "@cycle/history": "^3.0.0",
+    "switch-path": "^1.1.6"
   },
   "devDependencies": {
     "@cycle/base": "^2.0.1",

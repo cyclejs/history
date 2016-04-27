@@ -1,41 +1,27 @@
-import {Location, Pathname} from './interfaces';
-
-export function supportsHistory(): boolean {
-  if (typeof navigator === 'undefined') {
-    return false;
-  }
-
-  const ua = navigator.userAgent;
-
-  if ((ua.indexOf('Android 2.') !== -1 ||
-      ua.indexOf('Android 4.0') !== -1) &&
-      ua.indexOf('Mobile Safari') !== -1 &&
-      ua.indexOf('Chrome') === -1 &&
-      ua.indexOf('Windows Phone') === -1) {
-    return false;
-  }
-
-  if (typeof window !== 'undefined') {
-    return window.history && 'pushState' in window.history;
-  } else {
-    return false;
-  }
+function splitPath(path: string): string[] {
+  return path.split('/').filter(p => p.length > 0);
 }
 
-const locationDefaults: Location = {
-  pathname: '/',
-  action: 'POP',
-  hash: '',
-  search: '',
-  state: null,
-  key: null,
-  query: null,
-};
-
-export function createLocation(location?: Location | Pathname): Location {
-  if (typeof location === 'string') {
-    return (<any> Object).assign({}, locationDefaults, {pathname: location});
-  }
-  return (<any> Object).assign({}, locationDefaults, location);
+function filterPath(pathParts: string[], namespace: string[]): string {
+  return pathParts.filter(part => namespace.indexOf(part) < 0).join('/');
 }
 
+const startsWith = (param: string, value: string) => param[0] === value;
+
+const startsWith2 = (param: string, value1: string, value2: string) =>
+  param[0] === value1 && param[1] === value2;
+
+function makeCreateHref(namespace: string[], _createHref: Function): Function {
+  return function createHref(path: string): string {
+    const fullPath = `${namespace.join('/')}${path}`;
+    return startsWith(fullPath, '/') || startsWith2(fullPath, '#', '/') ?
+      _createHref(fullPath) :
+      _createHref('/' + fullPath);
+  };
+}
+
+export {
+  splitPath,
+  filterPath,
+  makeCreateHref,
+}

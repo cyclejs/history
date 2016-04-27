@@ -1,3 +1,6 @@
-export {makeHistoryDriver} from './makeHistoryDriver';
-export {createServerHistory} from './serverHistory';
-export {supportsHistory, createLocation} from './util';
+export {makeRouterDriver} from './makeRouterDriver';
+export {
+  supportsHistory,
+  createLocation,
+  createServerHistory,
+} from '@cycle/history';
