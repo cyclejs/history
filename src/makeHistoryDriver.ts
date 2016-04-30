@@ -2,6 +2,7 @@ import {StreamAdapter} from '@cycle/base';
 import {History, Location, HistoryDriverOptions, Pathname} from './interfaces';
 
 import {captureClicks} from './captureClicks';
+import {ServerHistory} from './serverHistory';
 
 function makeUpdateHistory(history: History) {
   return function updateHistory(location: Location | Pathname) {
@@ -29,11 +30,11 @@ function defaultOnErrorFn(err: Error) {
 }
 
 export function makeHistoryDriver(history: History, options?: HistoryDriverOptions) {
-  if (!history || typeof history !== 'object' ||
-    typeof history.createLocation !== 'function' ||
-    typeof history.createHref !== 'function' ||
-    typeof history.listen !== 'function' ||
-    typeof history.push !== 'function') {
+  if (!history || typeof history !== 'object'
+    || typeof history.createLocation !== 'function'
+    || typeof history.createHref !== 'function'
+    || typeof history.listen !== 'function'
+    || typeof history.push !== 'function') {
     throw new TypeError('makeHistoryDriver requires an valid history object ' +
       'containing createLocation(), createHref(), push(), and listen() methods');
   }
@@ -61,10 +62,13 @@ export function makeHistoryDriver(history: History, options?: HistoryDriverOptio
         history.push(location);
       });
     }
+    const history$ = history instanceof ServerHistory
+      ? stream.take(1)
+      : stream;
 
-    stream.createHref = history.createHref;
-    stream.createLocation = history.createLocation;
+    history$.createHref = history.createHref;
+    history$.createLocation = history.createLocation;
 
-    return stream;
+    return history$;
   };
 }
