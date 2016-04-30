@@ -4,6 +4,8 @@ import {createLocation} from './util';
 
 export class ServerHistory implements History {
   private listeners: Array<Listener>;
+  private _completeCallback: () => void;
+
   constructor() {
     this.listeners = [];
   }
@@ -34,6 +36,14 @@ export class ServerHistory implements History {
 
   createLocation(location: Location | Pathname) {
     return createLocation(location);
+  }
+
+  addCompleteCallback(complete: () => void) {
+    this._completeCallback = complete;
+  }
+
+  complete() {
+    this._completeCallback();
   }
 }
 

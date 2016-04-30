@@ -47,6 +47,13 @@ export function makeHistoryDriver(history: History, options?: HistoryDriverOptio
       observer.next(location);
     });
 
+    if (typeof history.addCompleteCallback === 'function'
+        && typeof history.complete === 'function') {
+      history.addCompleteCallback(() => {
+        observer.complete();
+      });
+    }
+
     runSA.streamSubscribe(sink$, {
       next: makeUpdateHistory(history),
       error: onError,
@@ -62,13 +69,10 @@ export function makeHistoryDriver(history: History, options?: HistoryDriverOptio
         history.push(location);
       });
     }
-    const history$ = history instanceof ServerHistory
-      ? stream.take(1)
-      : stream;
 
-    history$.createHref = history.createHref;
-    history$.createLocation = history.createLocation;
+    stream.createHref = history.createHref;
+    stream.createLocation = history.createLocation;
 
-    return history$;
+    return stream;
   };
 }
