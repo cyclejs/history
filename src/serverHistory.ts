@@ -2,7 +2,7 @@ import {History, Listener, Location, Pathname} from './interfaces';
 
 import {createLocation} from './util';
 
-export class ServerHistory implements History {
+class ServerHistory implements History {
   private listeners: Array<Listener>;
   private _completeCallback: () => void;
 

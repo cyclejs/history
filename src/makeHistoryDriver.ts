@@ -2,7 +2,6 @@ import {StreamAdapter} from '@cycle/base';
 import {History, Location, HistoryDriverOptions, Pathname} from './interfaces';
 
 import {captureClicks} from './captureClicks';
-import {ServerHistory} from './serverHistory';
 
 function makeUpdateHistory(history: History) {
   return function updateHistory(location: Location | Pathname) {
