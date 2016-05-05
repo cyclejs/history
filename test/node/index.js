@@ -15,7 +15,6 @@ const locationDefaults = {
   action: 'POP',
   hash: '',
   search: '',
-  state: null,
   key: null,
   query: null,
 };
@@ -49,22 +48,23 @@ describe('History', () => {
 
   describe('createServerHistory', () => {
     it(`should be an object`, () => {
-      const history = createServerHistory();
+      const history = createServerHistory('/path');
       assert.strictEqual(typeof history, `object`);
       assert.strictEqual(typeof history.push, `function`);
       assert.strictEqual(typeof history.listen, `function`);
       assert.strictEqual(typeof history.replace, `function`);
+      assert.strictEqual(typeof history.getCurrentLocation, `function`);
     });
 
     it(`should return a function when .listen() is called`, () => {
-      const history = createServerHistory();
+      const history = createServerHistory('/path');
       const unlisten = history.listen(() => { return void 0; });
       assert.strictEqual(typeof unlisten, `function`);
       unlisten();
     });
 
     it(`should allow pushing locations`, (done) => {
-      const history = createServerHistory();
+      const history = createServerHistory('/path');
       history.listen(location => {
         assert.strictEqual(typeof location, `object`);
         assert.strictEqual(location.pathname, `/some/path`);
@@ -74,16 +74,16 @@ describe('History', () => {
     });
 
     it(`should create an href`, () => {
-      const history = createServerHistory();
+      const history = createServerHistory('/path');
       assert.strictEqual(history.createHref(`/some/path`), `/some/path`);
     });
 
     it(`should create a location`, () => {
-      const history = createServerHistory();
+      const history = createServerHistory('/path');
       const location = history.createLocation(`/some/path`);
       assert.strictEqual(typeof location, `object`);
       assert.strictEqual(location.pathname, `/some/path`);
-      assert.strictEqual(location.state, null);
+      assert.strictEqual(typeof location.state, `undefined`);
       assert.strictEqual(location.query, null);
     });
   });
@@ -97,7 +97,7 @@ describe('History', () => {
 
     it(`should return a stream with createHref() and createLocation() methods`,
       () => {
-        const history = createServerHistory();
+        const history = createServerHistory('/path');
         const history$ = makeHistoryDriver(history)(xs.of(`/`), XSAdapter);
 
         assert.strictEqual(history$ instanceof xs, true);
@@ -106,14 +106,14 @@ describe('History', () => {
       });
 
     it('should allow pushing to a history object', (done) => {
-      const history = createServerHistory();
+      const history = createServerHistory('/path');
       const app = () => ({})
       const {sources, run} = Cycle(app, {
         history: makeHistoryDriver(history)
       })
 
       let dispose;
-      sources.history.addListener({
+      sources.history.drop(1).addListener({
         next(location) {
           assert.strictEqual(location.pathname, '/test');
           setTimeout(() => {
@@ -132,15 +132,15 @@ describe('History', () => {
     it(`should return a location to application`, (done) => {
       const app = () => ({history: xs.of(`/`)});
       const {sources, run} = Cycle(app, {
-        history: makeHistoryDriver(createServerHistory()),
+        history: makeHistoryDriver(createServerHistory('/path')),
       });
 
       let dispose;
-      sources.history.addListener({
+      sources.history.drop(1).addListener({
         next: (location) => {
           assert.strictEqual(typeof location, `object`);
           assert.strictEqual(location.pathname, `/`);
-          assert.strictEqual(location.state, null);
+          assert.strictEqual(typeof location.state, `undefined`);
           setTimeout(() => {
             dispose();
             done();
@@ -160,15 +160,15 @@ describe('History', () => {
         }),
       });
       const {sources, run} = Cycle(app, {
-        history: makeHistoryDriver(createServerHistory()),
+        history: makeHistoryDriver(createServerHistory('/path')),
       });
 
       let dispose;
-      sources.history.addListener({
+      sources.history.drop(1).addListener({
         next(location) {
           assert.strictEqual(typeof location, `object`);
           assert.strictEqual(location.pathname, `/`);
-          assert.strictEqual(location.state, null);
+          assert.strictEqual(typeof location.state, `undefined`);
           setTimeout(() => {
             dispose();
             done();
@@ -181,10 +181,10 @@ describe('History', () => {
     });
   });
 
-  it('should allow killing the stream with serverHistory.complete()', () => {
+  it('should allow killing the stream with serverHistory.complete()', (done) => {
     const app = () => ({});
 
-    const history = createServerHistory();
+    const history = createServerHistory('/path');
     const {sources, run} = Cycle(app, {
       history: makeHistoryDriver(history),
     });
@@ -211,7 +211,30 @@ describe('History', () => {
     });
     dispose = run();
 
-    history.push('/path');
     history.push('/other');
+  });
+
+  it(`should be initiated with the location passed to createServerHistory`, (done) => {
+    const app = () => ({})
+
+    const {sources, run} = Cycle(app, {
+      history: makeHistoryDriver(createServerHistory('/path')),
+    })
+
+    let dispose;
+    sources.history.addListener({
+      next(location) {
+        assert.strictEqual(typeof location, `object`);
+        assert.strictEqual(location.pathname, '/path')
+        assert.strictEqual(typeof location.state, `undefined`);
+        setTimeout(() => {
+          dispose();
+          done();
+        });
+      },
+      error() { return void 0; },
+      complete() { return void 0; },
+    })
+    dispose = run();
   });
 });
