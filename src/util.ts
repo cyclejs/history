@@ -27,7 +27,6 @@ const locationDefaults: Location = {
   action: 'POP',
   hash: '',
   search: '',
-  state: null,
   key: null,
   query: null,
 };

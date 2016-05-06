@@ -6,7 +6,7 @@ class ServerHistory implements History {
   private listeners: Array<Listener>;
   private _completeCallback: () => void;
 
-  constructor() {
+  constructor(private currentLocation: Location) {
     this.listeners = [];
   }
 
@@ -20,7 +20,7 @@ class ServerHistory implements History {
     if (length === 0) {
       throw new Error('Must be given at least one listener before pushing');
     }
-
+    this.currentLocation = createLocation(location);
     for (let i = 0; i < length; ++i) {
       this.listeners[i](createLocation(location));
     }
@@ -45,8 +45,15 @@ class ServerHistory implements History {
   complete() {
     this._completeCallback();
   }
+
+  getCurrentLocation() {
+    return this.currentLocation;
+  }
 }
 
-export function createServerHistory(): History {
-  return new ServerHistory();
+export function createServerHistory(currentLocation: Location | Pathname): History {
+  if (currentLocation === void 0) {
+    throw new Error('ServerHistory needs an initial location passed in as a parameter');
+  }
+  return new ServerHistory(createLocation(currentLocation));
 }

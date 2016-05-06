@@ -33,9 +33,11 @@ export function makeHistoryDriver(history: History, options?: HistoryDriverOptio
     || typeof history.createLocation !== 'function'
     || typeof history.createHref !== 'function'
     || typeof history.listen !== 'function'
-    || typeof history.push !== 'function') {
+    || typeof history.push !== 'function'
+    || typeof history.getCurrentLocation !== 'function') {
     throw new TypeError('makeHistoryDriver requires an valid history object ' +
-      'containing createLocation(), createHref(), push(), and listen() methods');
+      'containing createLocation(), createHref(), push(), ' +
+      'getCurrentLocation(), and listen() methods');
   }
   const capture: boolean = options && options.capture || false;
   const onError: (err: Error) => void = options && options.onError || defaultOnErrorFn;
@@ -68,6 +70,8 @@ export function makeHistoryDriver(history: History, options?: HistoryDriverOptio
         history.push(location);
       });
     }
+
+    observer.next(history.getCurrentLocation());
 
     stream.createHref = history.createHref;
     stream.createLocation = history.createLocation;
