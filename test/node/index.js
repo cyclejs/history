@@ -1,8 +1,53 @@
 import * as assert from 'assert';
 
 import xs from 'xstream';
-import Cycle from '@cycle/xstream-run';
+import CycleXStream from '@cycle/xstream-run';
 import XSAdapter from '@cycle/xstream-adapter';
+
+const xsInterface = {
+  Cycle: CycleXStream,
+  Adapter: XSAdapter,
+  of: x => xs.of(x),
+  name: 'XStream',
+  StreamType: xs,
+}
+
+import CycleMost from '@cycle/most-run'
+import MostAdapter from '@cycle/most-adapter'
+import most from 'most'
+
+const mostInterface = {
+  Cycle: CycleMost,
+  Adapter: MostAdapter,
+  of: x => most.of(x),
+  name: 'Most',
+  StreamType: most.Stream,
+}
+
+import CycleRxJS from '@cycle/rxjs-run'
+import RxJSAdapter from '@cycle/rxjs-adapter'
+import RxJS from 'rxjs'
+
+const rxjsInterface = {
+  Cycle: CycleRxJS,
+  Adapter: RxJSAdapter,
+  of: x => RxJS.Observable.of(x),
+  name: 'Rx 5',
+  StreamType: RxJS.Observable
+}
+
+import CycleRx from '@cycle/rx-run'
+import RxAdapter from '@cycle/rx-adapter'
+import Rx from 'rx'
+
+const rxInterface = {
+  Cycle: CycleRx,
+  Adapter: RxAdapter,
+  of: x => Rx.Observable.of(x),
+  name: 'Rx 4',
+  StreamType: Rx.Observable
+}
+
 import {
   makeHistoryDriver,
   createServerHistory,
@@ -19,6 +64,13 @@ const locationDefaults = {
   key: null,
   query: null,
 };
+
+const interfaces = [
+  xsInterface,
+  mostInterface,
+  rxjsInterface,
+  rxInterface
+]
 
 describe('History', () => {
 
@@ -88,130 +140,132 @@ describe('History', () => {
     });
   });
 
-  describe(`historyDriver`, () => {
-    it(`should throw if not given a valid history object`, () => {
-      assert.throws(() => {
-        makeHistoryDriver();
-      }, TypeError);
-    });
+  interfaces.forEach(({of, name, Cycle, Adapter, StreamType}) => {
 
-    it(`should return a stream with createHref() and createLocation() methods`,
-      () => {
-        const history = createServerHistory();
-        const history$ = makeHistoryDriver(history)(xs.of(`/`), XSAdapter);
-
-        assert.strictEqual(history$ instanceof xs, true);
-        assert.strictEqual(typeof history$.createHref, `function`);
-        assert.strictEqual(typeof history$.createLocation, `function`);
+    describe(`historyDriver ~ ${name}`, () => {
+      it(`should throw if not given a valid history object`, () => {
+        assert.throws(() => {
+          makeHistoryDriver();
+        }, TypeError);
       });
 
-    it('should allow pushing to a history object', (done) => {
-      const history = createServerHistory();
-      const app = () => ({})
-      const {sources, run} = Cycle(app, {
-        history: makeHistoryDriver(history)
-      })
+      it(`should return a stream with createHref() and createLocation() methods`,
+        () => {
+          const history = createServerHistory();
+          const history$ = makeHistoryDriver(history)(of(`/`), Adapter);
 
-      let dispose;
-      sources.history.addListener({
-        next(location) {
-          assert.strictEqual(location.pathname, '/test');
-          setTimeout(() => {
-            dispose();
-            done();
-          })
-        },
-        error: () => {},
-        complete: () => {}
-      })
-      dispose = run();
-
-      history.push('/test')
-    })
-
-    it(`should return a location to application`, (done) => {
-      const app = () => ({history: xs.of(`/`)});
-      const {sources, run} = Cycle(app, {
-        history: makeHistoryDriver(createServerHistory()),
-      });
-
-      let dispose;
-      sources.history.addListener({
-        next: (location) => {
-          assert.strictEqual(typeof location, `object`);
-          assert.strictEqual(location.pathname, `/`);
-          assert.strictEqual(location.state, null);
-          setTimeout(() => {
-            dispose();
-            done();
-          });
-        },
-        error() { return void 0; },
-        complete() { return void 0; },
-      });
-      dispose = run();
-    });
-
-    it(`should allow replacing a location`, (done) => {
-      const app = () => ({
-        history: xs.of({
-          type: `replace`,
-          pathname: `/`,
-        }),
-      });
-      const {sources, run} = Cycle(app, {
-        history: makeHistoryDriver(createServerHistory()),
-      });
-
-      let dispose;
-      sources.history.addListener({
-        next(location) {
-          assert.strictEqual(typeof location, `object`);
-          assert.strictEqual(location.pathname, `/`);
-          assert.strictEqual(location.state, null);
-          setTimeout(() => {
-            dispose();
-            done();
-          });
-        },
-        error() { return void 0; },
-        complete() { return void 0; },
-      });
-      dispose = run();
-    });
-  });
-
-  it('should allow killing the stream with serverHistory.complete()', () => {
-    const app = () => ({});
-
-    const history = createServerHistory();
-    const {sources, run} = Cycle(app, {
-      history: makeHistoryDriver(history),
-    });
-
-    const expected = ['/path', '/other']
-
-    let dispose;
-    sources.history.addListener({
-      next(location) {
-        assert.strictEqual(typeof location, `object`);
-        assert.strictEqual(location.pathname, expected.shift());
-        if (expected.length === 0) {
-          setTimeout(() => history.complete(), 0)
-        }
-      },
-      error() { return void 0; },
-      complete() {
-        assert.strictEqual(expected.length, 0)
-        setTimeout(() => {
-          dispose();
-          done();
+          assert.strictEqual(history$ instanceof StreamType, true);
+          assert.strictEqual(typeof history$.createHref, `function`);
+          assert.strictEqual(typeof history$.createLocation, `function`);
         });
-      },
-    });
-    dispose = run();
 
-    history.push('/path');
-    history.push('/other');
-  });
+      it('should allow pushing to a history object', (done) => {
+        const history = createServerHistory();
+        const app = () => ({})
+        const {sources, run} = Cycle(app, {
+          history: makeHistoryDriver(history)
+        })
+
+        Adapter.streamSubscribe(sources.history, {
+          next(location) {
+            assert.strictEqual(location.pathname, '/test');
+            done();
+          },
+          error: () => {},
+          complete: () => {}
+        })
+        run();
+
+        history.push('/test')
+      })
+
+      it(`should return a location to application`, (done) => {
+        const app = () => ({history: of(`/`)});
+        const {sources, run} = Cycle(app, {
+          history: makeHistoryDriver(createServerHistory()),
+        });
+
+        let dispose;
+        Adapter.streamSubscribe(sources.history, {
+          next: (location) => {
+            assert.strictEqual(typeof location, `object`);
+            assert.strictEqual(location.pathname, `/`);
+            assert.strictEqual(location.state, null);
+            setTimeout(() => {
+              dispose();
+              done();
+            });
+          },
+          error() { return void 0; },
+          complete() { return void 0; },
+        });
+        dispose = run();
+      });
+
+      it(`should allow replacing a location`, (done) => {
+        const app = () => ({
+          history: of({
+            type: `replace`,
+            pathname: `/`,
+          }),
+        });
+        const {sources, run} = Cycle(app, {
+          history: makeHistoryDriver(createServerHistory()),
+        });
+
+        let dispose;
+        Adapter.streamSubscribe(sources.history, {
+          next(location) {
+            assert.strictEqual(typeof location, `object`);
+            assert.strictEqual(location.pathname, `/`);
+            assert.strictEqual(location.state, null);
+            setTimeout(() => {
+              dispose();
+              done();
+            });
+          },
+          error() { return void 0; },
+          complete() { return void 0; },
+        });
+        dispose = run();
+      });
+    });
+
+    it('should allow killing the stream with serverHistory.complete()', () => {
+      const app = () => ({});
+
+      const history = createServerHistory();
+      const {sources, run} = Cycle(app, {
+        history: makeHistoryDriver(history),
+      });
+
+      const expected = ['/path', '/other']
+
+      let dispose;
+      Adapter.streamSubscribe(sources.history, {
+        next(location) {
+          assert.strictEqual(typeof location, `object`);
+          assert.strictEqual(location.pathname, expected.shift());
+          if (expected.length === 0) {
+            setTimeout(() => history.complete(), 0)
+          }
+        },
+        error() { return void 0; },
+        complete() {
+          assert.strictEqual(expected.length, 0)
+          setTimeout(() => {
+            dispose();
+            done();
+          });
+        },
+      });
+      dispose = run();
+
+      history.push('/path');
+      history.push('/other');
+    });
+
+  })
+
+
 });
