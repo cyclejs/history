@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 
 import {makeDOMDriver, h} from '@cycle/dom';
-import {createHistory, createHashHistory} from 'history';
+import {createHashHistory} from 'history';
 import {
   makeHistoryDriver,
   createServerHistory,
@@ -126,7 +126,7 @@ describe('History', () => {
 
       it(`should return a stream with createHref() and createLocation() methods`,
         () => {
-          const history = createHistory();
+          const history = createHashHistory();
           const history$ = makeHistoryDriver(history)(of(`/`), Adapter);
 
           assert.strictEqual(history$ instanceof StreamType, true);
@@ -135,7 +135,7 @@ describe('History', () => {
         });
 
       it('should allow pushing to a history object', (done) => {
-        const history = createHistory();
+        const history = createHashHistory();
         const app = () => ({})
         const {sources, run} = Cycle(app, {
           history: makeHistoryDriver(history)
@@ -165,7 +165,7 @@ describe('History', () => {
       it(`should return a location to application`, (done) => {
         const app = () => ({history: of(`/`)});
         const {sources, run} = Cycle(app, {
-          history: makeHistoryDriver(createHistory()),
+          history: makeHistoryDriver(createHashHistory()),
         });
 
         let dispose;
@@ -193,7 +193,7 @@ describe('History', () => {
           }),
         });
         const {sources, run} = Cycle(app, {
-          history: makeHistoryDriver(createHistory()),
+          history: makeHistoryDriver(createHashHistory()),
         });
 
         let dispose;
