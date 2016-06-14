@@ -10,7 +10,7 @@
   "after_tests": "rm test/browser/bundle.js",
   "script": "npm run test-ci",
   "launch_in_ci": [
-    "firefox"
+    "chrome"
   ],
   "launch_in_dev": [
     "chrome"
