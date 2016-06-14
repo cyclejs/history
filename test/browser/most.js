@@ -32,7 +32,7 @@ function createRenderTarget(id = null) {
   return element;
 };
 
-describe('History', () => {
+describe('History - Most', () => {
 
   describe('createLocation', () => {
     it(`should return a full location with no parameter`, () => {
@@ -107,13 +107,13 @@ describe('History', () => {
       }, TypeError);
     });
 
-    it(`should capture link clicks when capture === true`, done => {
+    it.skip(`should capture link clicks when capture === true`, done => {
       const pathname = window.location.pathname
-      const app = () => ({DOM: most.of(
-        h(`div`, [
-          h(`a.link`, {props: {href: pathname + `/hello`}}, `Hello`),
-        ])
-      )})
+      const app = () => ({DOM:
+        most.of(
+          h(`a.link`, {props: {href: pathname + `/hello`}}, `Hello`)
+        )
+      })
 
       const {sources, run} = Cycle(app, {
         DOM: makeDOMDriver(createRenderTarget()),
@@ -122,34 +122,23 @@ describe('History', () => {
 
       let dispose;
       sources.history
-        .filter(({action}) => action === `PUSH`)
-        .subscribe({
-          next: location => {
-            assert.strictEqual(typeof location, `object`);
-            assert.strictEqual(location.pathname, pathname + `/hello`);
-            setTimeout(() => {
-              dispose();
-              done();
-            });
-          },
-          error: () => {},
-          complete: () => {}
-        });
-
-      sources.DOM.elements.skip(1).take(1).subscribe({
-        next: (root) => {
-          const element = root.querySelector(`.link`);
-          assert.strictEqual(element.tagName, `A`);
+        .skip(1)
+        .observe(location => {
+          assert.strictEqual(typeof location, `object`);
+          assert.strictEqual(location.pathname, pathname + `/hello`);
           setTimeout(() => {
-            element.click();
-          }, 1000)
-        },
-        error: () => {},
-        complete: () => {}
-      });
+            dispose();
+            done();
+          });
+        })
 
-      dispose = run();
+      sources.DOM.select(':root').elements().observe((root) => {
+        const element = root.querySelector(`.link`);
+        assert.strictEqual(element.tagName, `A`);
+        setTimeout(() => { element.click(); }, 1000)
+      })
 
+      setTimeout(() => { dispose = run(); })
     })
 
     it(`should return a stream with createHref() and createLocation() methods`,
@@ -163,37 +152,41 @@ describe('History', () => {
       });
 
     it('should allow pushing to a history object', (done) => {
-      const history = createServerHistory();
+      const history = createHistory();
       const app = () => ({})
       const {sources, run} = Cycle(app, {
         history: makeHistoryDriver(history)
       })
 
       let dispose;
-      sources.history.subscribe({
-        next(location) {
-          assert.strictEqual(location.pathname, '/test');
-          setTimeout(() => {
-            dispose();
-            done();
-          })
-        },
-        error: () => {},
-        complete: () => {}
+      sources.history
+        .filter(({action}) => action === 'PUSH')
+        .subscribe({
+          next(location) {
+            assert.strictEqual(location.pathname, '/test');
+            setTimeout(() => {
+              dispose();
+              done();
+            })
+          },
+          error: () => {},
+          complete: () => {}
+        })
+      setTimeout(() => {
+        dispose = run();
+        history.push('/test')
       })
-      dispose = run();
 
-      history.push('/test')
     })
 
     it(`should return a location to application`, (done) => {
       const app = () => ({history: most.of(`/`)});
       const {sources, run} = Cycle(app, {
-        history: makeHistoryDriver(createServerHistory()),
+        history: makeHistoryDriver(createHistory()),
       });
 
       let dispose;
-      sources.history.subscribe({
+      sources.history.skip(1).subscribe({
         next: (location) => {
           assert.strictEqual(typeof location, `object`);
           assert.strictEqual(location.pathname, `/`);
@@ -217,11 +210,11 @@ describe('History', () => {
         }),
       });
       const {sources, run} = Cycle(app, {
-        history: makeHistoryDriver(createServerHistory()),
+        history: makeHistoryDriver(createHistory()),
       });
 
       let dispose;
-      sources.history.subscribe({
+      sources.history.skip(1).subscribe({
         next(location) {
           assert.strictEqual(typeof location, `object`);
           assert.strictEqual(location.pathname, `/`);

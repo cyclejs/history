@@ -42,9 +42,9 @@ export function makeHistoryDriver(history: History, options?: HistoryDriverOptio
 
   return function historyDriver(sink$: any, runSA: StreamAdapter) {
     let {observer, stream} = runSA.makeSubject();
-    let history$ = stream
+    let history$ = runSA.remember(stream
       .startWith(history.getCurrentLocation())
-      .filter(Boolean);
+      .filter(Boolean));
 
     let unlisten = history.listen((location: Location) => {
       observer.next(location);

@@ -20,7 +20,7 @@ const locationDefaults = {
   query: null,
 };
 
-describe('History', () => {
+describe('History - XStream', () => {
 
   describe('createLocation', () => {
     it(`should return a full location with no parameter`, () => {
