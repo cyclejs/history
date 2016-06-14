@@ -73,8 +73,8 @@ export function makeHistoryDriver(history: History, options?: HistoryDriverOptio
       });
     }
 
-    history$.createHref = history.createHref;
-    history$.createLocation = history.createLocation;
+    history$.createHref = (href: Pathname) => history.createHref(href);
+    history$.createLocation = (location: Location | Pathname) => history.createLocation(location);
 
     return history$;
   };
