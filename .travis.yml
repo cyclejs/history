@@ -1,6 +1,8 @@
 language: node_js
 sudo: required
 dist: trusty
+addons:
+  firefox: latest
 node_js:
   - 6
 before_install:
